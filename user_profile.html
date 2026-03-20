@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4A90E2">
+<style data-purpose="custom-transitions">
+  /* Subtle touch feedback for mobile interaction */
+  .active-state:active {
+    background-color: #f3f4f6;
+  }
+  .logout-active:active {
+    background-color: #fee2e2;
+  }
+</style>
+</head>
+
+<body class="bg-gray-50 text-gray-900 font-sans antialiased">
+
+<main class="max-w-md mx-auto min-h-screen flex flex-col bg-white shadow-sm">
+
+  <!-- HEADER -->
+  <header class="flex flex-col items-center pt-6 pb-8 px-6 bg-gradient-to-b from-blue-50 to-white relative">
+
+  <!-- BACK BUTTON -->
+  <button onclick="window.location.href='messages_home.html'" 
+          class="absolute left-4 top-6 text-blue-600 text-lg font-bold flex items-center space-x-1 hover:opacity-80">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+    </svg>
+    <span>Back</span>
+  </button>
+
+  <!-- PROFILE PICTURE -->
+  <div class="relative mb-4 mt-6">
+    <img id="profile-pic"
+         class="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
+         src="https://i.pravatar.cc/150" alt="Profile Picture">
+    <button class="absolute bottom-1 right-1 bg-blue-600 text-white p-2 rounded-full shadow-md hover:bg-blue-700 transition-colors">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+      </svg>
+    </button>
+    <input type="file" id="avatarInput" accept="image/*" hidden>
+  </div>
+
+  <!-- USER INFO -->
+  <div class="text-center">
+    <h1 id="username" class="text-2xl font-bold text-gray-800">Loading...</h1>
+    <div class="flex items-center justify-center mt-1 space-x-2">
+      <span class="w-2.5 h-2.5 bg-green-500 rounded-full"></span>
+      <span class="text-sm text-gray-500 font-medium">Active</span>
+    </div>
+  </div>
+</header>
+  <!-- SETTINGS MENU -->
+  <section class="flex-grow px-4 mt-6" data-purpose="settings-menu">
+
+    <div class="mb-6">
+      <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">Account Settings</h2>
+      <div class="bg-gray-50 rounded-2xl overflow-hidden border border-gray-100">
+        <button class="w-full flex items-center justify-between p-4 active-state transition-colors border-b border-gray-100">
+          <div class="flex items-center space-x-3">
+            <div class="bg-blue-100 p-2 rounded-lg text-blue-600">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+              </svg>
+            </div>
+            <span class="font-medium text-gray-700">Notifications</span>
+          </div>
+          <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          </svg>
+        </button>
+
+        <button class="w-full flex items-center justify-between p-4 active-state transition-colors border-b border-gray-100">
+          <div class="flex items-center space-x-3">
+            <div class="bg-purple-100 p-2 rounded-lg text-purple-600">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+              </svg>
+            </div>
+            <span class="font-medium text-gray-700">Privacy</span>
+          </div>
+          <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          </svg>
+        </button>
+
+        <button class="w-full flex items-center justify-between p-4 active-state transition-colors">
+          <div class="flex items-center space-x-3">
+            <div class="bg-orange-100 p-2 rounded-lg text-orange-600">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+              </svg>
+            </div>
+            <span class="font-medium text-gray-700">Account Details</span>
+          </div>
+          <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- LOGOUT BUTTON -->
+  <footer class="p-6 mt-auto">
+    <button id="logoutBtn"
+      class="w-full py-4 px-6 rounded-2xl bg-red-50 text-red-600 font-bold flex items-center justify-center space-x-2 logout-active transition-all border border-red-100">
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+      </svg>
+      <span>Logout</span>
+    </button>
+    <div class="h-6 w-full"></div>
+  </footer>
+
+</main>
+
+</body>
+</html>
+<!-- FIREBASE -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import { 
+  getDatabase, ref, onValue, update 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+import { 
+  getAuth, signOut 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+
+// CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyDTCAJI5pMu8g7LMZCEu_mBAfUnEdf34O8",
+  authDomain: "chatspot-2eba4.firebaseapp.com",
+  databaseURL: "https://chatspot-2eba4-default-rtdb.firebaseio.com/",
+  projectId: "chatspot-2eba4"
+};
+
+// INIT
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+// USER
+const currentUser = localStorage.getItem("uid");
+
+if (!currentUser) {
+  window.location.href = "login.html";
+}
+
+// ELEMENTS
+const nameEl = document.getElementById("username");
+const picEl = document.getElementById("profile-pic");
+const statusText = document.querySelector(".text-sm.text-gray-500.font-medium");
+const statusDot = document.querySelector(".w-2\\.5");
+const fileInput = document.getElementById("avatarInput");
+
+// 🔥 LOAD USER DATA
+onValue(ref(db, "users/" + currentUser), (snap) => {
+
+  if (!snap.exists()) return;
+
+  const data = snap.val();
+
+  nameEl.innerText = data.name || "User";
+
+  picEl.src = data.avatar || `https://i.pravatar.cc/150?u=${currentUser}`;
+});
+
+
+// 🔥 REAL STATUS
+onValue(ref(db, "status/" + currentUser), (snap) => {
+
+  if (!snap.exists()) return;
+
+  const status = snap.val();
+
+  if (status.online) {
+    statusText.innerText = "Active";
+    statusDot.classList.remove("bg-gray-400");
+    statusDot.classList.add("bg-green-500");
+  } else {
+    const time = new Date(status.lastSeen || 0)
+      .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    statusText.innerText = "Last seen " + time;
+    statusDot.classList.remove("bg-green-500");
+    statusDot.classList.add("bg-gray-400");
+  }
+});
+
+
+// 🔥 UPLOAD PROFILE PICTURE (BASE64 SIMPLE METHOD)
+document.querySelector(".absolute.bottom-1.right-1").onclick = () => {
+  fileInput.click();
+};
+
+fileInput.addEventListener("change", async (e) => {
+
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = async function() {
+
+    const base64 = reader.result;
+
+    // SAVE IN DATABASE
+    await update(ref(db, "users/" + currentUser), {
+      avatar: base64
+    });
+
+  };
+
+  reader.readAsDataURL(file);
+});
+
+
+// 🔥 LOGOUT
+document.getElementById("logoutBtn").onclick = async () => {
+
+  if (!confirm("Logout?")) return;
+
+  await signOut(auth);
+
+  localStorage.removeItem("uid");
+
+  window.location.href = "login.html";
+};
+
+</script>
+</body>
+</html>

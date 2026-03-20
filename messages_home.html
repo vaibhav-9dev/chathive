@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Messages</title>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4A90E2">
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        'soft-blue': '#EBF2FF',
+        'brand-blue': '#4A90E2',
+        'chat-text': '#333333',
+        'chat-muted': '#8E8E93'
+      }
+    }
+  }
+}
+</script>
+
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+}
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+}
+</style>
+
+</head>
+
+<body class="bg-white text-chat-text min-h-screen flex flex-col">
+
+<!-- HEADER -->
+<header class="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-100 p-4">
+
+  <div class="flex justify-between items-center mb-4">
+
+    <h1 class="text-2xl font-bold text-brand-blue">Messages</h1>
+
+    <!-- 🔥 PROFILE IMAGE -->
+    <img id="header-profile-pic"
+         onclick="window.location.href='user_profile.html'"
+         class="w-10 h-10 rounded-full object-cover cursor-pointer border"
+         src="https://i.pravatar.cc/150">
+  </div>
+
+  <!-- 🔍 PREMIUM SEARCH -->
+<div class="relative group">
+
+  <!-- ICON -->
+  <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+    <svg class="w-5 h-5 text-gray-400 group-focus-within:text-brand-blue transition"
+         fill="none" stroke="currentColor" stroke-width="2"
+         viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+  </div>
+
+  <!-- INPUT -->
+  <input id="searchInput"
+    type="text"
+    placeholder="Search conversations..."
+    class="w-full pl-10 pr-10 py-2.5 rounded-xl bg-soft-blue text-sm
+           border border-transparent
+           focus:bg-white focus:border-brand-blue
+           focus:ring-2 focus:ring-brand-blue/30
+           outline-none transition-all duration-200 shadow-sm"/>
+
+  <!-- CLEAR BUTTON -->
+  <button id="clearSearch"
+    class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-red-500 hidden">
+    ✕
+  </button>
+
+</div>
+</header>
+
+<!-- CHAT LIST -->
+<div id="chat-list" class="flex-grow overflow-y-auto px-4 pb-24"></div>
+
+<!-- FLOAT BUTTON -->
+<button onclick="goToContacts()"
+class="fixed bottom-16 right-6 w-14 h-14 bg-brand-blue text-white rounded-full shadow-lg flex items-center justify-center">
++
+</button>
+
+<!-- NAV -->
+<nav class="fixed bottom-0 left-0 right-0 z-50">
+
+  <div class="backdrop-blur-xl bg-white/80 border-t border-gray-200 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+
+    <div class="flex justify-around items-center py-2">
+
+      <!-- CHATS (ACTIVE HERE) -->
+      <a href="messages_home.html" class="nav-item active group">
+        <div class="nav-icon-wrapper active-bg">
+          <i class="fas fa-comment-alt"></i>
+        </div>
+        <span>Chats</span>
+      </a>
+
+      <!-- FRIENDS -->
+      <a href="contacts_list.html" class="nav-item group">
+        <div class="nav-icon-wrapper">
+          <i class="fas fa-user-friends"></i>
+        </div>
+        <span>Friends</span>
+      </a>
+
+      <!-- PROFILE -->
+      <a href="user_profile.html" class="nav-item group">
+        <div class="nav-icon-wrapper">
+          <i class="fas fa-user"></i>
+        </div>
+        <span>Profile</span>
+      </a>
+
+    </div>
+
+  </div>
+
+</nav><!-- FIREBASE -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import { 
+  getDatabase, ref, onValue, get, set, onDisconnect 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+// CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyDTCAJI5pMu8g7LMZCEu_mBAfUnEdf34O8",
+  authDomain: "chatspot-2eba4.firebaseapp.com",
+  databaseURL: "https://chatspot-2eba4-default-rtdb.firebaseio.com/",
+  projectId: "chatspot-2eba4"
+};
+
+// INIT
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// USER
+const currentUser = localStorage.getItem("uid");
+if (!currentUser) window.location.href = "login.html";
+
+// 🔥 LOAD PROFILE PIC
+onValue(ref(db, "users/" + currentUser), (snap) => {
+  if (!snap.exists()) return;
+  const data = snap.val();
+  document.getElementById("header-profile-pic").src =
+    data.avatar || `https://i.pravatar.cc/150?u=${currentUser}`;
+});
+
+// 🔥 PRESENCE
+const statusRef = ref(db, "status/" + currentUser);
+
+set(statusRef, {
+  online: true,
+  lastSeen: Date.now(),
+  typing: false
+});
+
+onDisconnect(statusRef).set({
+  online: false,
+  lastSeen: Date.now(),
+  typing: false
+});
+
+// REFS
+const chatsRef = ref(db, "chats");
+const usersRef = ref(db, "users");
+
+// 🔥 MAIN CHAT LIST
+onValue(chatsRef, async (snapshot) => {
+
+  const container = document.getElementById("chat-list");
+  container.innerHTML = "";
+
+  if (!snapshot.exists()) {
+    container.innerHTML = "No chats yet";
+    return;
+  }
+
+  const usersSnap = await get(usersRef);
+  const users = usersSnap.val() || {};
+  const chats = snapshot.val();
+
+  let chatArray = [];
+
+  for (let chatId in chats) {
+
+    const chat = chats[chatId];
+
+    if (!chat.participants || !chat.participants[currentUser]) continue;
+
+    const otherUser = Object.keys(chat.participants)
+      .find(u => u !== currentUser);
+
+    chatArray.push({
+      chatId,
+      otherUser,
+      lastMessage: chat.lastMessage || "",
+      time: chat.lastTime || 0
+    });
+  }
+
+  chatArray.sort((a,b) => b.time - a.time);
+
+  for (let chat of chatArray) {
+
+    const user = users[chat.otherUser] || {};
+
+    let preview = chat.lastMessage;
+
+    // 🔥 STATUS
+    const statusSnap = await get(ref(db, "status/" + chat.otherUser));
+    if (statusSnap.exists() && statusSnap.val().typing) {
+      preview = "Typing...";
+    }
+
+    // 🔥 MESSAGE STATUS
+    let tick = "";
+    const msgSnap = await get(ref(db, `messages/${chat.chatId}`));
+
+    if (msgSnap.exists()) {
+      const msgs = Object.values(msgSnap.val());
+      const last = msgs[msgs.length - 1];
+
+      if (last.sender === currentUser) {
+        tick = last.seen ? "✔✔ " : "✔ ";
+      }
+    }
+
+    const div = document.createElement("div");
+
+    div.className = "flex items-center p-3 border-b cursor-pointer";
+    div.onclick = () => openChat(chat.chatId);
+
+    div.innerHTML = `
+      <img class="w-12 h-12 rounded-full"
+        src="${user.avatar || `https://i.pravatar.cc/150?u=${chat.otherUser}`}">
+
+      <div class="ml-3 flex-1">
+        <div class="flex justify-between">
+          <p class="font-semibold">${user.name || "User"}</p>
+          <p class="text-xs text-gray-400">${formatTime(chat.time)}</p>
+        </div>
+
+        <p class="text-sm text-gray-500 truncate">
+          ${tick}${preview}
+        </p>
+      </div>
+    `;
+
+    container.appendChild(div);
+  }
+
+});
+
+// TIME
+function formatTime(ts){
+  if (!ts) return "";
+  return new Date(ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+// NAV
+window.openChat = (id) => {
+  window.location.href = `chat_window.html?chatId=${id}`;
+};
+
+window.goToContacts = () => {
+  window.location.href = "contacts_list.html";
+};
+
+//Search
+const searchInput = document.getElementById("searchInput");
+const clearBtn = document.getElementById("clearSearch");
+
+searchInput.addEventListener("input", () => {
+  const value = searchInput.value.toLowerCase();
+  const chats = document.querySelectorAll("#chat-list > div");
+
+  clearBtn.style.display = value ? "flex" : "none";
+
+  chats.forEach(chat => {
+    const name = chat.querySelector("p").innerText.toLowerCase();
+    const message = chat.querySelectorAll("p")[1].innerText.toLowerCase();
+
+    if (name.includes(value) || message.includes(value)) {
+      chat.style.display = "flex";
+    } else {
+      chat.style.display = "none";
+    }
+  });
+});
+
+// CLEAR BUTTON
+clearBtn.onclick = () => {
+  searchInput.value = "";
+  clearBtn.style.display = "none";
+  document.querySelectorAll("#chat-list > div")
+    .forEach(chat => chat.style.display = "flex");
+};
+
+</script>
+
+</body>
+</html>

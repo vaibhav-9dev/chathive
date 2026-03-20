@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat</title>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4A90E2">
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'chat-bg': '#F0F2F5',
+            'bubble-sent': '#007AFF',
+            'bubble-received': '#E9E9EB',
+          }
+        }
+      }
+    }
+  </script>
+<!-- END: Tailwind CSS Integration -->
+<!-- BEGIN: Global Styles -->
+<style data-purpose="scrollbar-hiding">
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    /* Hide scrollbar for IE, Edge and Firefox */
+    .no-scrollbar {
+      -ms-overflow-style: none;  /* IE and Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    
+    /* Ensure the body doesn't bounce on iOS but allows internal scrolling */
+    body {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+  </style>
+<style data-purpose="ios-safe-areas">
+    /* Padding for iOS home indicator and notch */
+    .safe-top { padding-top: env(safe-area-inset-top); }
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  </style></head>
+
+<body class="bg-chat-bg font-sans text-gray-900">
+
+<div class="flex flex-col h-screen max-w-md mx-auto bg-white shadow-xl relative overflow-hidden">
+
+<!-- HEADER -->
+<div class="flex items-center gap-3 p-3 border-b">
+
+  <button onclick="goBack()" class="text-blue-500 text-xl hover:opacity-70"><svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M15.75 19.5L8.25 12l7.5-7.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg></button>
+
+  <div class="flex flex-col">
+    <h1 id="chat-name" class="font-semibold text-base leading-tight">Loading...</h1>
+    <p class="text-xs text-gray-500">Online</p>
+  </div>
+
+</div>
+
+<!-- MESSAGES -->
+<div id="message-container"
+  class="flex-1 overflow-y-auto p-3 space-y-3"></div>
+
+<!-- INPUT -->
+<!-- INPUT -->
+<div class="p-3 border-t bg-white flex items-center gap-3 safe-bottom">
+  
+  <!-- TEXT INPUT -->
+  <textarea id="chat-input"
+    class="flex-1 bg-gray-100 rounded-full py-2 px-4 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-500 transition-all duration-200"
+    placeholder="Type a message..." rows="1"></textarea>
+  
+  <!-- SEND BUTTON -->
+  <button id="send-button"aria-label="Send message" class="p-2.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 shadow-md transition-all active:scale-95" id="send-button">
+<svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z"></path>
+</svg>
+</button>
+</div>
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+  getDatabase, ref, push, set, onValue, get, update, onDisconnect
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+
+// CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyDTCAJI5pMu8g7LMZCEu_mBAfUnEdf34O8",
+  authDomain: "chatspot-2eba4.firebaseapp.com",
+  databaseURL: "https://chatspot-2eba4-default-rtdb.firebaseio.com/",
+  projectId: "chatspot-2eba4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// USER
+const currentUser = localStorage.getItem("uid");
+
+if (!currentUser) {
+  window.location.href = "login.html";
+}
+
+// CHAT ID
+const params = new URLSearchParams(window.location.search);
+const chatId = params.get("chatId");
+
+if (!chatId) alert("No chat selected");
+
+// REFS
+const messagesRef = ref(db, `messages/${chatId}`);
+const chatRef = ref(db, `chats/${chatId}`);
+const usersRef = ref(db, "users");
+
+const container = document.getElementById("message-container");
+const statusText = document.querySelector(".text-xs.text-gray-500");
+
+// 🔥 PRESENCE (SELF)
+const myStatusRef = ref(db, "status/" + currentUser);
+
+set(myStatusRef, {
+  online: true,
+  lastSeen: Date.now(),
+  typing: false
+});
+
+onDisconnect(myStatusRef).set({
+  online: false,
+  lastSeen: Date.now(),
+  typing: false
+});
+
+
+// 🔥 GET OTHER USER
+let otherUser = null;
+
+const chatSnap = await get(chatRef);
+const usersSnap = await get(usersRef);
+
+if (chatSnap.exists()) {
+  const chat = chatSnap.val();
+  const users = usersSnap.val() || {};
+
+  otherUser = Object.keys(chat.participants)
+    .find(u => u !== currentUser);
+
+  document.getElementById("chat-name").innerText =
+    users[otherUser]?.name || "User";
+}
+
+
+// 🔥 LISTEN OTHER USER STATUS (ONLINE / TYPING)
+onValue(ref(db, "status/" + otherUser), (snap) => {
+
+  if (!snap.exists()) return;
+
+  const status = snap.val();
+
+  if (status.typing) {
+    statusText.innerText = "Typing...";
+  } else if (status.online) {
+    statusText.innerText = "Online";
+  } else {
+    const time = new Date(status.lastSeen || 0)
+      .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    statusText.innerText = "Last seen " + time;
+  }
+});
+
+
+// 🔥 REALTIME MESSAGES
+onValue(messagesRef, async (snapshot) => {
+
+  container.innerHTML = "";
+
+  if (!snapshot.exists()) return;
+
+  let messages = Object.entries(snapshot.val());
+
+  messages.sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+  for (let [msgId, msg] of messages) {
+
+    const wrapper = document.createElement("div");
+
+    const time = new Date(msg.timestamp)
+      .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    if (msg.sender === currentUser) {
+
+      wrapper.className = "flex justify-end";
+
+      wrapper.innerHTML = `
+        <div class="bg-bubble-sent text-white px-4 py-2 rounded-2xl max-w-[70%]">
+          <p>${msg.text}</p>
+          <p class="text-xs text-right mt-1 opacity-70">
+            ${time} ${msg.seen ? "✔✔" : "✔"}
+          </p>
+        </div>
+      `;
+
+    } else {
+
+      wrapper.className = "flex justify-start";
+
+      wrapper.innerHTML = `
+        <div class="bg-bubble-received px-4 py-2 rounded-2xl max-w-[70%]">
+          <p>${msg.text}</p>
+          <p class="text-xs text-right mt-1 text-gray-400">${time}</p>
+        </div>
+      `;
+
+      // ✅ MARK AS SEEN IN DATABASE (IMPORTANT FIX)
+      if (!msg.seen) {
+        await update(ref(db, `messages/${chatId}/${msgId}`), {
+          seen: true
+        });
+      }
+    }
+
+    container.appendChild(wrapper);
+  }
+
+  container.scrollTop = container.scrollHeight;
+});
+
+
+// 🔥 TYPING SYSTEM
+const inputBox = document.getElementById("chat-input");
+
+let typingTimeout;
+
+inputBox.addEventListener("input", async () => {
+
+  await update(ref(db, "status/" + currentUser), {
+    typing: true
+  });
+
+  clearTimeout(typingTimeout);
+
+  typingTimeout = setTimeout(async () => {
+    await update(ref(db, "status/" + currentUser), {
+      typing: false
+    });
+  }, 1500);
+});
+
+
+// SEND MESSAGE
+document.getElementById("send-button").onclick = async () => {
+
+  const input = document.getElementById("chat-input");
+  const text = input.value.trim();
+
+  if (!text) return;
+
+  const newMsg = push(messagesRef);
+
+  await set(newMsg, {
+    sender: currentUser,
+    text: text,
+    timestamp: Date.now(),
+    seen: false
+  });
+
+  await update(chatRef, {
+    lastMessage: text,
+    lastTime: Date.now()
+  });
+
+  input.value = "";
+
+  // stop typing
+  await update(ref(db, "status/" + currentUser), {
+    typing: false
+  });
+};
+
+
+// BACK
+window.goBack = function() {
+  window.location.href = "messages_home.html";
+};
+
+</script>
+</body>
+</html>

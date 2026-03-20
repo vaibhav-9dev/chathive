@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contacts</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#4A90E2">
+<style>
+  .status-dot { transition: background-color 0.3s ease; }
+  .contact-item:active { background-color: #f0f7ff; }
+</style>
+</head>
+<body class="bg-gray-100 text-slate-800 font-sans antialiased">
+
+<div class="max-w-md mx-auto bg-white min-h-screen flex flex-col shadow-lg overflow-hidden">
+
+  <!-- HEADER -->
+  <header class="bg-blue-600 text-white px-4 pt-6 pb-4 sticky top-0 z-50 shadow-md">
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-2xl font-bold">Friends</h1>
+      <button onclick="window.location.href='messages_home.html'" class="text-white hover:text-gray-200">
+        <i class="fas fa-arrow-left"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTACT LIST -->
+  <div id="contacts" class="flex-1 overflow-y-auto"></div>
+
+  <!-- NAV -->
+  <nav class="bg-white border-t border-gray-200 flex justify-around items-center py-3">
+    <a href="messages_home.html">
+      <button class="flex flex-col items-center text-gray-400 hover:text-blue-600 transition-colors">
+        <i class="fas fa-comment-alt h-6 w-6"></i>
+        <span class="text-[10px] mt-1">Chats</span>
+      </button>
+    </a>
+
+    <button class="flex flex-col items-center text-blue-600 font-semibold">
+      <i class="fas fa-user-friends h-6 w-6"></i>
+      <span class="text-[10px] mt-1">Friends</span>
+    </button>
+
+    <a href="user_profile.html">
+      <button class="flex flex-col items-center text-gray-400 hover:text-blue-600 transition-colors">
+        <i class="fas fa-user-cog h-6 w-6"></i>
+        <span class="text-[10px] mt-1">Settings</span>
+      </button>
+    </a>
+  </nav>
+
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { 
+  getDatabase, ref, onValue, push, set 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+// CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyDTCAJI5pMu8g7LMZCEu_mBAfUnEdf34O8",
+  authDomain: "chatspot-2eba4.firebaseapp.com",
+  databaseURL: "https://chatspot-2eba4-default-rtdb.firebaseio.com/",
+  projectId: "chatspot-2eba4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// USER
+const currentUser = localStorage.getItem("uid");
+if (!currentUser) window.location.href = "login.html";
+
+// REFS
+const usersRef = ref(db, "users");
+const statusRef = ref(db, "status");
+const chatsRef = ref(db, "chats");
+
+const container = document.getElementById("contacts");
+
+// 🔥 REALTIME MERGED DATA
+onValue(usersRef, (userSnap) => {
+
+  if (!userSnap.exists()) return;
+  const users = userSnap.val();
+
+  onValue(statusRef, (statusSnap) => {
+
+    const statuses = statusSnap.val() || {};
+
+    onValue(chatsRef, (chatSnap) => {
+
+      const chats = chatSnap.val() || {};
+
+      container.innerHTML = "";
+
+      Object.keys(users).forEach(uid => {
+
+        if (uid === currentUser) return;
+
+        const user = users[uid];
+        const status = statuses[uid] || {};
+
+        // 🔥 FIND CHAT WITH THIS USER
+        let lastMessage = "Start chatting...";
+
+        for (let chatId in chats) {
+          const chat = chats[chatId];
+
+          if (chat.participants &&
+              chat.participants[currentUser] &&
+              chat.participants[uid]) {
+
+            lastMessage = chat.lastMessage || "Start chatting...";
+            break;
+          }
+        }
+
+        const isOnline = status.online;
+
+        const div = document.createElement("div");
+
+        div.className = "flex items-center p-3 border-b cursor-pointer hover:bg-gray-100 contact-item";
+        div.onclick = () => startChat(uid);
+
+        div.innerHTML = `
+          <div class="relative">
+            <img class="w-12 h-12 rounded-full"
+                 src="${user.avatar || `https://i.pravatar.cc/150?u=${uid}`}">
+
+            <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white
+              ${isOnline ? 'bg-green-500' : 'bg-gray-400'}">
+            </span>
+          </div>
+
+          <div class="ml-3 flex-1">
+            <p class="font-semibold text-gray-800">${user.name}</p>
+            <p class="text-sm text-gray-500 truncate">
+              ${lastMessage}
+            </p>
+          </div>
+        `;
+
+        container.appendChild(div);
+      });
+
+    });
+
+  });
+
+});
+
+
+// START CHAT
+window.startChat = async function(friendId) {
+
+  const chatsRef = ref(db, "chats");
+  let chatId = null;
+
+  await new Promise(resolve => {
+    onValue(chatsRef, (snapshot) => {
+
+      if (snapshot.exists()) {
+        const chats = snapshot.val();
+
+        for (let id in chats) {
+          const p = chats[id].participants;
+          if (p[currentUser] && p[friendId]) {
+            chatId = id;
+            break;
+          }
+        }
+      }
+
+      resolve();
+    }, { onlyOnce: true });
+  });
+
+  if (!chatId) {
+    const newChatRef = push(chatsRef);
+
+    await set(newChatRef, {
+      participants: {
+        [currentUser]: true,
+        [friendId]: true
+      },
+      createdAt: Date.now()
+    });
+
+    chatId = newChatRef.key;
+  }
+
+  window.location.href = `chat_window.html?chatId=${chatId}`;
+};
+</script>
+</body>
+</html>
