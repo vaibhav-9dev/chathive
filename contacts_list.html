@@ -18,7 +18,7 @@
 <div class="max-w-md mx-auto bg-white min-h-screen flex flex-col shadow-lg overflow-hidden">
 
   <!-- HEADER -->
-  <header class="bg-blue-600 text-white px-4 pt-6 pb-4 sticky top-0 z-50 shadow-md">
+  <header class="bg-orange-600 text-white px-4 pt-6 pb-4 sticky top-0 z-50 shadow-md">
     <div class="flex items-center justify-between mb-4">
       <h1 class="text-2xl font-bold">Friends</h1>
       <button onclick="window.location.href='messages_home.html'" class="text-white hover:text-gray-200">
@@ -31,28 +31,34 @@
   <div id="contacts" class="flex-1 overflow-y-auto"></div>
 
   <!-- NAV -->
-  <nav class="bg-white border-t border-gray-200 flex justify-around items-center py-3">
+  <nav class="bg-white border-t border-gray-200 flex justify-around items-center py-3" data-purpose="tab-bar">
     <a href="messages_home.html">
-      <button class="flex flex-col items-center text-gray-400 hover:text-blue-600 transition-colors">
-        <i class="fas fa-comment-alt h-6 w-6"></i>
-        <span class="text-[10px] mt-1">Chats</span>
-      </button>
+<button class="flex flex-col items-center text-gray-400 hover:text-orange-600 transition-colors">
+<svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="text-[10px] mt-1">Chats</span>
+</button>
     </a>
-
-    <button class="flex flex-col items-center text-blue-600 font-semibold">
-      <i class="fas fa-user-friends h-6 w-6"></i>
-      <span class="text-[10px] mt-1">Friends</span>
-    </button>
-
+    <a href="contacts_list.html">
+<button class="flex flex-col items-center text-orange-600 font-semibold">
+<svg class="h-6 w-6" fill="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"></path>
+</svg>
+<span class="text-[10px] mt-1">Friends</span>
+</button>
+    </a>
     <a href="user_profile.html">
-      <button class="flex flex-col items-center text-gray-400 hover:text-blue-600 transition-colors">
-        <i class="fas fa-user-cog h-6 w-6"></i>
-        <span class="text-[10px] mt-1">Settings</span>
-      </button>
+<button class="flex flex-col items-center text-gray-400 hover:text-orange-600 transition-colors">
+<svg class="h-6 w-6" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span class="text-[10px] mt-1">Settings</span>
+</button>
     </a>
-  </nav>
-
-</div>
+</nav>
+<!-- END: BottomNavigation -->
 
 <!-- FIREBASE -->
 <script type="module">
