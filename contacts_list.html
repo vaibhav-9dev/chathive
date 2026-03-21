@@ -25,6 +25,14 @@
         <i class="fas fa-arrow-left"></i>
       </button>
     </div>
+    <div class="relative" data-purpose="search-container">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<svg class="h-5 w-5 text-orange-200" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</span>
+<input class="block w-full pl-10 pr-3 py-2 border-none rounded-lg bg-blue-700/50 text-white placeholder-blue-200 focus:ring-2 focus:ring-white/50 focus:bg-orange-700 transition-all text-sm" id="search-friends" placeholder="Search friends..." type="text"/>
+</div>
   </header>
 
   <!-- CONTACT LIST -->
@@ -204,5 +212,29 @@ window.startChat = async function(friendId) {
   window.location.href = `chat_window.html?chatId=${chatId}`;
 };
 </script>
+<script data-purpose="search-filtering">
+    // Simple frontend filtering for demonstration
+    const searchInput = document.getElementById('search-friends');
+    const contactEntries = document.querySelectorAll('[data-purpose="contact-entry"]');
+
+    searchInput.addEventListener('input', (e) => {
+      const term = e.target.value.toLowerCase();
+      contactEntries.forEach(entry => {
+        const name = entry.querySelector('p.text-sm').textContent.toLowerCase();
+        if (name.includes(term)) {
+          entry.style.display = 'flex';
+        } else {
+          entry.style.display = 'none';
+        }
+      });
+      
+      // Hide section headers if no children are visible (Simplified)
+      const sections = document.querySelectorAll('section');
+      sections.forEach(section => {
+        const visibleItems = section.querySelectorAll('[data-purpose="contact-entry"][style*="display: flex"], [data-purpose="contact-entry"]:not([style*="display: none"])');
+        section.style.display = visibleItems.length > 0 ? 'block' : 'none';
+      });
+    });
+  </script>
 </body>
 </html>
