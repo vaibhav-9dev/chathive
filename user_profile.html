@@ -174,7 +174,7 @@ onValue(ref(db, "users/" + currentUser), (snap) => {
 
   nameEl.innerText = data.name || "User";
 
-  picEl.src = data.avatar || `https://i.pravatar.cc/150?u=${currentUser}`;
+  picEl.src = data.avatar || `blank-profile.webp`;
 });
 
 
