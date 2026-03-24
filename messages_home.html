@@ -244,7 +244,7 @@ onValue(chatsRef, async (snapshot) => {
 
     div.innerHTML = `
       <img class="w-12 h-12 rounded-full"
-        src="${user.avatar || `https://i.pravatar.cc/150?u=${chat.otherUser}`}">
+        src="${user.avatar || `blank-profile.webp${chat.otherUser}`}">
 
       <div class="ml-3 flex-1">
         <div class="flex justify-between">
