@@ -243,8 +243,9 @@ onValue(chatsRef, async (snapshot) => {
     div.onclick = () => openChat(chat.chatId);
 
     div.innerHTML = `
-      <img class="w-12 h-12 rounded-full"
-        src="${user.avatar || `blank-profile.webp${chat.otherUser}`}">
+      <img class="w-12 h-12 rounded-full object-cover"
+    src="${user.avatar || 'blank-profile.webp'}"
+    onerror="this.onerror=null; this.src='blank-profile.webp';">
 
       <div class="ml-3 flex-1">
         <div class="flex justify-between">
