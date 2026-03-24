@@ -60,7 +60,8 @@ body {
     <img id="header-profile-pic"
          onclick="window.location.href='user_profile.html'"
          class="w-10 h-10 rounded-full object-cover cursor-pointer border"
-         src="https://i.pravatar.cc/150">
+         src="${user.avatar ? user.avatar : 'blank-profile.webp'}" 
+     onerror="this.src='blank-profile.webp'">
   </div>
 
   <!-- 🔍 SEARCH -->
@@ -155,8 +156,7 @@ if (!currentUser) window.location.href = "login.html";
 onValue(ref(db, "users/" + currentUser), (snap) => {
   if (!snap.exists()) return;
   const data = snap.val();
-  document.getElementById("header-profile-pic").src =
-    data.avatar || `blank-profile.webp${currentUser}`;
+  document.getElementById("header-profile-pic").src = data.avatar || "blank-profile.webp";
 });
 
 // PRESENCE
