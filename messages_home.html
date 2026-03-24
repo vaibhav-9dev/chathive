@@ -156,7 +156,7 @@ onValue(ref(db, "users/" + currentUser), (snap) => {
   if (!snap.exists()) return;
   const data = snap.val();
   document.getElementById("header-profile-pic").src =
-    data.avatar || `https://i.pravatar.cc/150?u=${currentUser}`;
+    data.avatar || `blank-profile.webp${currentUser}`;
 });
 
 // PRESENCE
